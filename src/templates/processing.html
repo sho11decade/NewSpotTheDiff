@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}生成中... - 間違い探し自動生成{% endblock %}
+
+{% block content %}
+<div class="card processing-card">
+    <h2>間違い探しを生成しています...</h2>
+
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-bar__fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <p class="progress-text" id="progressText">0%</p>
+    </div>
+
+    <p class="step-text" id="stepText">待機中...</p>
+
+    <div class="processing-animation">
+        <div class="spinner"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/processing.js') }}"></script>
+{% endblock %}

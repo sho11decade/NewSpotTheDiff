@@ -1,0 +1,37 @@
+[project]
+name = "spot-the-diff"
+version = "0.1.0"
+description = "AI-powered spot-the-difference puzzle generator"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0",
+    "pillow>=10.0",
+    "opencv-python>=4.8",
+    "opencv-contrib-python>=4.8",
+    "ultralytics>=8.0",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests requiring FastSAM model (deselect with '-m \"not slow\"')",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

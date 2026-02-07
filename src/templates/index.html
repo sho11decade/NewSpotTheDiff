@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}画像をアップロード - 間違い探し自動生成{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>間違い探しを自動生成</h1>
+    <p>画像をアップロードするだけで、AIが自動的に間違い探しを作成します。</p>
+</section>
+
+<!-- Upload Area -->
+<div id="uploadSection" class="card">
+    <div id="dropZone" class="drop-zone">
+        <div class="drop-zone__icon">&#128247;</div>
+        <p class="drop-zone__text">画像をドラッグ＆ドロップ</p>
+        <p class="drop-zone__or">または</p>
+        <button type="button" class="btn btn--primary" onclick="document.getElementById('fileInput').click()">
+            ファイルを選択
+        </button>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg" hidden>
+        <p class="drop-zone__hint">JPEG / PNG（最大10MB）</p>
+    </div>
+</div>
+
+<!-- Preview + Settings -->
+<div id="previewSection" class="card" hidden>
+    <div class="preview-container">
+        <img id="previewImage" class="preview-image" alt="プレビュー">
+    </div>
+    <div class="settings">
+        <div class="settings__group">
+            <label for="difficulty" class="settings__label">難易度</label>
+            <div class="difficulty-buttons" id="difficultyButtons">
+                <button type="button" class="diff-btn" data-value="easy">簡単<br><small>3箇所</small></button>
+                <button type="button" class="diff-btn diff-btn--active" data-value="medium">普通<br><small>5箇所</small></button>
+                <button type="button" class="diff-btn" data-value="hard">難しい<br><small>8箇所</small></button>
+            </div>
+        </div>
+        <div class="settings__actions">
+            <button type="button" class="btn btn--secondary" id="resetBtn">画像を変更</button>
+            <button type="button" class="btn btn--success btn--large" id="generateBtn" disabled>
+                間違い探しを生成
+            </button>
+        </div>
+    </div>
+    <div id="uploadError" class="error-message" hidden></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

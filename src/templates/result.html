@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}結果 - 間違い探し自動生成{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>間違い探し完成!</h2>
+
+    <div class="result-info" id="resultInfo" hidden>
+        <span class="badge" id="difficultyBadge"></span>
+        <span class="badge badge--outline" id="countBadge"></span>
+        <span class="badge badge--outline" id="timeBadge"></span>
+    </div>
+
+    <div class="comparison" id="comparison">
+        <div class="comparison__panel">
+            <h3>オリジナル</h3>
+            <img id="originalImage" class="comparison__image" alt="オリジナル画像">
+        </div>
+        <div class="comparison__panel">
+            <h3>間違い探し</h3>
+            <img id="modifiedImage" class="comparison__image" alt="間違い探し画像">
+        </div>
+    </div>
+
+    <div class="result-actions">
+        <button class="btn btn--primary" id="downloadOriginal">オリジナルをDL</button>
+        <button class="btn btn--primary" id="downloadModified">間違い探しをDL</button>
+        <button class="btn btn--secondary" id="showAnswers">答えを見る</button>
+        <a href="/" class="btn btn--secondary">新しい画像で作成</a>
+    </div>
+
+    <div id="answersSection" class="answers" hidden>
+        <h3>答え（変更箇所）</h3>
+        <ul id="answersList"></ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const JOB_ID = "{{ job_id }}";
+</script>
+<script src="{{ url_for('static', filename='js/result.js') }}"></script>
+{% endblock %}
