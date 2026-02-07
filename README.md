@@ -1,0 +1,1 @@
+# NewSpotTheDiff - Next-Generation Spot the Difference Auto-Generator
