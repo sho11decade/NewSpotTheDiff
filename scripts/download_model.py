@@ -9,9 +9,17 @@ import os
 import sys
 from pathlib import Path
 
-# Add parent directory to path to import config
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# CRITICAL: Set environment variables and change directory BEFORE any other imports
+# This must be done before importing config or any other modules that might use Ultralytics
+os.environ.setdefault('YOLO_CONFIG_DIR', '/tmp/.config/Ultralytics')
+os.environ.setdefault('TORCH_HOME', '/tmp/.cache/torch')
 
+# Change to writable directory immediately
+original_dir = os.getcwd()
+os.chdir('/tmp')
+
+# Now safe to import config
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.config import config
 
 
@@ -19,16 +27,9 @@ def main():
     """Ensure FastSAM model is available."""
     print("FastSAM Model Setup")
     print("=" * 50)
-
-    # Set Ultralytics to use writable directories
-    # This prevents "Read-only file system" errors in deployment
-    os.environ.setdefault('YOLO_CONFIG_DIR', '/tmp/.config/Ultralytics')
-    os.environ.setdefault('TORCH_HOME', '/tmp/.cache/torch')
-
-    # Change to writable directory before importing Ultralytics
-    # Ultralytics may try to write to current directory during import/download
-    original_dir = os.getcwd()
-    os.chdir('/tmp')
+    print(f"Working directory: {os.getcwd()}")
+    print(f"YOLO_CONFIG_DIR: {os.environ.get('YOLO_CONFIG_DIR')}")
+    print(f"TORCH_HOME: {os.environ.get('TORCH_HOME')}")
 
     # Get production config
     env = os.environ.get("FLASK_ENV", "production")
@@ -57,32 +58,31 @@ def main():
         from ultralytics import FastSAM
 
         print("Initializing FastSAM (triggers automatic download)...")
+        print(f"Current directory: {os.getcwd()}")
+
+        # Let Ultralytics handle everything - it will download to WEIGHTS_DIR
         model = FastSAM('FastSAM-x.pt')
 
         print("✓ FastSAM model is ready")
         print("✓ Model is cached by Ultralytics and ready to use")
 
-        # Try to find and copy to local path for faster access
-        from ultralytics.utils import WEIGHTS_DIR
+        # Optionally try to copy to local path if it doesn't exist
+        if not model_path.exists():
+            from ultralytics.utils import WEIGHTS_DIR
 
-        cache_locations = [
-            WEIGHTS_DIR / 'FastSAM-x.pt',
-            Path.home() / '.cache' / 'torch' / 'hub' / 'checkpoints' / 'FastSAM-x.pt',
-            Path.home() / '.cache' / 'ultralytics' / 'FastSAM-x.pt',
-        ]
+            print(f"\nUltralytics WEIGHTS_DIR: {WEIGHTS_DIR}")
+            cache_path = WEIGHTS_DIR / 'FastSAM-x.pt'
 
-        for cache_path in cache_locations:
             if cache_path.exists():
-                print(f"\nCopying model to local path for faster access...")
-                print(f"Source: {cache_path}")
-                print(f"Destination: {model_path}")
-
-                import shutil
-                shutil.copy2(cache_path, model_path)
-
-                size_mb = model_path.stat().st_size / 1e6
-                print(f"✓ Model copied: {model_path} ({size_mb:.1f}MB)")
-                break
+                try:
+                    print(f"Copying model to {model_path} for faster access...")
+                    import shutil
+                    shutil.copy2(cache_path, model_path)
+                    size_mb = model_path.stat().st_size / 1e6
+                    print(f"✓ Model copied: {model_path} ({size_mb:.1f}MB)")
+                except Exception as copy_error:
+                    print(f"⚠ Could not copy to local path: {copy_error}")
+                    print("  App will use Ultralytics cache (works fine)")
 
         return 0
 
