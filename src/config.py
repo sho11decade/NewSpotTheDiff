@@ -134,6 +134,10 @@ class ProductionConfig(Config):
     MODEL_FOLDER = "/tmp/spotdiff/models"
     DATABASE_PATH = "/tmp/spotdiff/spotdiff.db"
 
+    # Detect Hugging Face Spaces environment
+    # In HF Spaces, allow iframe embedding for preview functionality
+    _is_hf_spaces = os.environ.get("SPACE_ID") is not None
+
     SECURITY_HEADERS = {
         "force_https": True,
         "strict_transport_security": True,
@@ -144,9 +148,10 @@ class ProductionConfig(Config):
             "style-src": "'self' 'unsafe-inline'",
             "img-src": "'self' data: blob: https://www.google-analytics.com",
             "connect-src": "'self' https://www.google-analytics.com",
+            "frame-ancestors": "'self' https://huggingface.co" if _is_hf_spaces else "'self'",
         },
         "x_content_type_options": True,
-        "x_frame_options": "SAMEORIGIN",
+        "x_frame_options": None if _is_hf_spaces else "SAMEORIGIN",
         "x_xss_protection": True,
     }
 

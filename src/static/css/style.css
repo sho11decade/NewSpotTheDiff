@@ -618,3 +618,21 @@ main.container {
         flex-direction: column;
     }
 }
+
+/* ===== Utility Classes ===== */
+.text-center {
+    text-align: center;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.a4-image {
+    max-width: 100%;
+    border: 1px solid #ddd;
+}

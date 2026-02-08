@@ -34,10 +34,10 @@
 
     <div id="a4Section" class="a4-section" hidden>
         <h3>A4横サイズレイアウト</h3>
-        <div style="text-align: center; margin-top: 20px;">
-            <img id="a4LayoutImage" style="max-width: 100%; border: 1px solid #ddd;" alt="A4レイアウト">
+        <div class="text-center mt-20">
+            <img id="a4LayoutImage" class="a4-image" alt="A4レイアウト">
         </div>
-        <div style="text-align: center; margin-top: 10px;">
+        <div class="text-center mt-10">
             <button class="btn btn--primary" id="downloadA4WithAnswers">A4答え付きをDL</button>
         </div>
     </div>
@@ -45,7 +45,7 @@
     <div id="answersSection" class="answers" hidden>
         <h3>答え（変更箇所）</h3>
         <ul id="answersList"></ul>
-        <div class="comparison" style="margin-top: 20px;">
+        <div class="comparison mt-20">
             <div class="comparison__panel">
                 <h4>元画像（答え表示）</h4>
                 <img id="originalWithAnswers" class="comparison__image" alt="答え付き元画像">
@@ -60,7 +60,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce() }}">
     const JOB_ID = "{{ job_id }}";
 </script>
 <script src="{{ url_for('static', filename='js/result.js') }}"></script>
