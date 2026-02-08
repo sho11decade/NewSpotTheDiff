@@ -125,9 +125,18 @@ def _init_services(app: Flask) -> None:
 
     # Pre-load FastSAM model at startup to avoid first-request timeout
     # This takes ~30-60 seconds but prevents WORKER TIMEOUT on first request
-    logging.info("Pre-loading FastSAM model at startup...")
-    segmentation._ensure_model()
-    logging.info("FastSAM model pre-loaded successfully")
+    # Only pre-load if model file exists (skips on first deployment)
+    from pathlib import Path
+    model_file = Path(model_path)
+    if model_file.exists():
+        logging.info("Pre-loading FastSAM model at startup...")
+        segmentation._ensure_model()
+        logging.info("FastSAM model pre-loaded successfully")
+    else:
+        logging.warning(
+            "FastSAM model not found at startup. Model will be loaded on first request. "
+            "Consider downloading model before deployment: python scripts/download_model.py"
+        )
 
     saliency = SaliencyService()
     inpainting = InpaintingService(radius=app.config["INPAINT_RADIUS"])

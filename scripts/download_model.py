@@ -1,59 +1,82 @@
-"""Download the FastSAM model weights.
+#!/usr/bin/env python3
+"""Download FastSAM model for deployment.
 
-Usage:
-    python scripts/download_model.py
+This script downloads the FastSAM-x.pt model from the official source
+and saves it to the configured model directory.
 """
 
-from __future__ import annotations
-
+import os
 import sys
 from pathlib import Path
+from urllib.request import urlretrieve
 
-# Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+# Add parent directory to path to import config
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.config import Config
+from src.config import config
 
 
-def main() -> None:
-    model_dir = Path(Config.MODEL_FOLDER)
-    model_dir.mkdir(parents=True, exist_ok=True)
+def download_progress(block_num, block_size, total_size):
+    """Display download progress."""
+    downloaded = block_num * block_size
+    if total_size > 0:
+        percent = min(100, downloaded * 100 / total_size)
+        bar_length = 50
+        filled_length = int(bar_length * downloaded / total_size)
+        bar = '=' * filled_length + '-' * (bar_length - filled_length)
+        print(f'\rDownloading: [{bar}] {percent:.1f}% ({downloaded / 1e6:.1f}MB / {total_size / 1e6:.1f}MB)', end='', flush=True)
+    else:
+        print(f'\rDownloading: {downloaded / 1e6:.1f}MB', end='', flush=True)
 
-    model_name = Config.FASTSAM_MODEL
-    model_path = model_dir / model_name
 
+def main():
+    """Download FastSAM model if not already present."""
+    # Get production config
+    env = os.environ.get("FLASK_ENV", "production")
+    cfg = config.get(env, config["production"])
+
+    model_folder = cfg.MODEL_FOLDER
+    model_name = cfg.FASTSAM_MODEL
+    model_path = Path(model_folder) / model_name
+
+    # Create model directory if needed
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"Model directory: {model_path.parent}")
+
+    # Check if model already exists
     if model_path.exists():
-        print(f"Model already exists: {model_path}")
-        return
+        size_mb = model_path.stat().st_size / 1e6
+        print(f"✓ Model already exists: {model_path} ({size_mb:.1f}MB)")
+        return 0
 
-    print(f"Downloading {model_name} ...")
+    # Download model
+    # FastSAM-x.pt from official repository
+    model_url = "https://github.com/CASIA-IVA-Lab/FastSAM/releases/download/v0.1.0/FastSAM-x.pt"
+
+    print(f"Downloading FastSAM model from: {model_url}")
+    print(f"Destination: {model_path}")
+    print("This may take several minutes (~1.3GB)...\n")
 
     try:
-        from ultralytics import FastSAM
-    except ImportError:
-        print("Error: ultralytics is not installed.")
-        print("Run: pip install ultralytics")
-        sys.exit(1)
+        urlretrieve(model_url, model_path, reporthook=download_progress)
+        print("\n✓ Download complete!")
 
-    # FastSAM auto-downloads from Ultralytics hub when model file is not found
-    model = FastSAM(model_name)
+        # Verify file size
+        size_mb = model_path.stat().st_size / 1e6
+        print(f"✓ Model saved: {model_path} ({size_mb:.1f}MB)")
 
-    # Move the downloaded file to our model directory if it's elsewhere
-    default_path = Path(model_name)
-    if default_path.exists() and not model_path.exists():
-        default_path.rename(model_path)
-        print(f"Moved model to: {model_path}")
-    elif model_path.exists():
-        # Clean up the default location copy if both exist
-        if default_path.exists():
-            default_path.unlink()
-        print(f"Model saved to: {model_path}")
-    else:
-        print(f"Model loaded. Ensure it's placed at: {model_path}")
+        if size_mb < 100:
+            print("⚠ Warning: Model file seems too small. Download may have failed.")
+            return 1
 
-    print("Done.")
+        return 0
+
+    except Exception as e:
+        print(f"\n✗ Error downloading model: {e}")
+        if model_path.exists():
+            model_path.unlink()  # Remove partial download
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
