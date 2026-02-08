@@ -29,6 +29,11 @@ def create_app(config_name=None) -> Flask:
     Args:
         config_name: Configuration name ('development', 'production', or None for auto-detect)
     """
+    # Set Ultralytics environment variables before any imports
+    # This prevents "Read-only file system" errors in deployment
+    os.environ.setdefault('YOLO_CONFIG_DIR', '/tmp/.config/Ultralytics')
+    os.environ.setdefault('TORCH_HOME', '/tmp/.cache/torch')
+
     if config_name is None:
         # Auto-detect environment
         config_name = os.environ.get("FLASK_ENV", "development")

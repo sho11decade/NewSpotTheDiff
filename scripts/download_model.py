@@ -20,6 +20,16 @@ def main():
     print("FastSAM Model Setup")
     print("=" * 50)
 
+    # Set Ultralytics to use writable directories
+    # This prevents "Read-only file system" errors in deployment
+    os.environ.setdefault('YOLO_CONFIG_DIR', '/tmp/.config/Ultralytics')
+    os.environ.setdefault('TORCH_HOME', '/tmp/.cache/torch')
+
+    # Change to writable directory before importing Ultralytics
+    # Ultralytics may try to write to current directory during import/download
+    original_dir = os.getcwd()
+    os.chdir('/tmp')
+
     # Get production config
     env = os.environ.get("FLASK_ENV", "production")
     cfg = config.get(env, config["production"])
@@ -87,6 +97,9 @@ def main():
         print("  App will use Ultralytics cache (slightly slower startup)")
 
         return 0  # Don't fail, let app use cache
+    finally:
+        # Restore original directory
+        os.chdir(original_dir)
 
 
 if __name__ == "__main__":

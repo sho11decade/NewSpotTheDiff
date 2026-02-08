@@ -91,8 +91,12 @@ Leapcellのプロジェクト設定で以下の環境変数を設定してくだ
 | `FLASK_ENV` | `production` | **重要**: 本番環境では必ず`production`に設定 |
 | `SECRET_KEY` | ランダムな文字列（例: `your-secret-key-here-change-this`） | Flaskセッション用のシークレットキー |
 | `SITE_DOMAIN` | `spotthediff.ricezero.fun` | あなたのドメイン名 |
+| `YOLO_CONFIG_DIR` | `/tmp/.config/Ultralytics` | Ultralyticsキャッシュディレクトリ（推奨） |
+| `TORCH_HOME` | `/tmp/.cache/torch` | PyTorchキャッシュディレクトリ（推奨） |
 
-**重要:** `FLASK_ENV=production`を設定すると、アプリケーションは自動的に書き込み可能な`/tmp`ディレクトリを使用します。
+**重要:**
+- `FLASK_ENV=production`を設定すると、アプリケーションは自動的に書き込み可能な`/tmp`ディレクトリを使用します
+- `YOLO_CONFIG_DIR`と`TORCH_HOME`を設定すると、FastSAMモデルのダウンロード時の警告を防げます
 
 ### オプションの環境変数
 
@@ -263,6 +267,14 @@ https://spotthediff.ricezero.fun
 - 環境変数`FLASK_ENV`が`production`に設定されていることを確認
 - 本番設定では自動的に書き込み可能な`/tmp`ディレクトリを使用します
 - Leapcellの環境変数に`FLASK_ENV=production`を追加
+
+**警告: `Download failure, retrying ... Read-only file system`（FastSAMモデル関連）**
+
+解決策:
+- この警告は無害です。アプリケーションは正常に動作します（Ultralyticsキャッシュを使用）
+- 警告を完全に消すには、以下の環境変数を追加:
+  - `YOLO_CONFIG_DIR=/tmp/.config/Ultralytics`
+  - `TORCH_HOME=/tmp/.cache/torch`
 
 **エラー: `ModuleNotFoundError: No module named 'src'`**
 
