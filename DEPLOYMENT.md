@@ -127,7 +127,7 @@ Leapcellのビルド設定で以下を入力してください：
 | 設定項目 | 値 |
 |---------|-----|
 | **Runtime** | Python 3.10+ |
-| **Build Command** | `pip install -r requirements.txt` |
+| **Build Command** | `pip install -r requirements.txt && python scripts/download_model.py` |
 | **Start Command** | `gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app` |
 | **Port** | `8080` |
 
@@ -145,6 +145,16 @@ chmod +x build.sh && ./build.sh
 
 **注意:** `requirements.txt`では`opencv-python-headless`を使用しています。これはGUIライブラリへの依存が少なく、サーバー環境に適しています。
 
+### Build Commandの説明
+
+```bash
+pip install -r requirements.txt && python scripts/download_model.py
+```
+
+- 依存パッケージをインストール後、FastSAMモデルをダウンロード
+- ビルド時にはタイムアウト制限がないため、1.3GBのモデルを安全にダウンロード可能
+- **重要**: Build Commandでモデルをダウンロードしないと、起動時のヘルスチェックがタイムアウトします
+
 ### Start Commandの説明
 
 ```bash
@@ -153,9 +163,12 @@ gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
 
 - `-w 1`: ワーカープロセス数（**4GBメモリ環境用に最適化**。メモリに余裕がある場合は増やせます）
 - `-b :8080`: バインドするポート
-- `--timeout 300`: タイムアウト時間（FastSAMモデルロード + 画像処理に十分な時間を確保）
+- `--timeout 300`: タイムアウト時間（画像処理に十分な時間を確保）
 - `--max-requests 100`: ワーカーを100リクエストごとに再起動（メモリリーク防止）
 - `run:app`: `run.py`ファイルの`app`オブジェクトを起動
+
+**注意**: 以前のバージョンでは`python scripts/download_model.py &&`がStart Commandに含まれていましたが、
+ヘルスチェックタイムアウトを引き起こすため、Build Commandに移動しました。
 
 **メモリ最適化について:**
 - このアプリケーションは約1.2GBのFastSAMモデルを使用します
@@ -164,28 +177,33 @@ gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
 
 ## ステップ5: FastSAMモデルの配置
 
-FastSAMモデルは約1.3GBあり、Gitリポジトリに含めることはできません。以下の方法で対応してください：
+FastSAMモデルは約1.3GBあり、Gitリポジトリに含めることはできません。
 
-### オプション1: 初回実行時に自動ダウンロード（推奨）
+### 推奨方法: Build Commandで自動ダウンロード
 
-アプリケーションが初回実行時に自動的にモデルをダウンロードします。ただし、初回起動時に時間がかかります。
-
-### オプション2: 永続ストレージの使用
-
-Leapcellの永続ストレージ機能を使用して、モデルファイルを配置します：
-
-1. Leapcellダッシュボードで「Storage」セクションに移動
-2. 新しいボリュームを作成: `/app/instance/models`
-3. FastSAM-x.ptをアップロード
-
-### オプション3: 外部ストレージからのダウンロード
-
-環境変数でモデルのURLを指定し、起動時にダウンロードするスクリプトを追加：
+上記のBuild Commandに`python scripts/download_model.py`が含まれているため、
+デプロイ時に自動的にモデルがダウンロードされます。
 
 ```bash
-# Start Commandを変更
-python scripts/download_model.py && gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
+pip install -r requirements.txt && python scripts/download_model.py
 ```
+
+**動作:**
+1. ビルド時（デプロイ時）にスクリプトが実行される
+2. Ultralyticsがモデルを`/tmp`ディレクトリにダウンロード
+3. アプリはこのキャッシュされたモデルを使用
+
+**利点:**
+- ✅ ビルド時はタイムアウト制限がない（数分かかっても問題なし）
+- ✅ 起動時のヘルスチェックが高速（10秒以内に完了）
+- ✅ 手動でのモデル配置が不要
+
+### 代替方法: 初回リクエスト時にダウンロード
+
+モデルダウンロードをBuild Commandから削除した場合、初回の画像処理リクエスト時に
+自動的にダウンロードされます（300秒のタイムアウト内）。
+
+**注意**: この方法では初回リクエストが遅くなります（約2-3分）。
 
 ## ステップ6: デプロイ
 
@@ -261,6 +279,22 @@ https://spotthediff.ricezero.fun
 
 ### 起動エラー
 
+**エラー: `[Timeout ERROR] Leapcell proxy tried port Some(8080), but no response.`**
+
+原因:
+- Start Commandでモデルダウンロードを実行していると、ヘルスチェック（約10秒）がタイムアウト
+- 1.3GBのモデルダウンロードには数分かかる
+
+解決策:
+- Build Commandに`python scripts/download_model.py`を含める（推奨）:
+  ```bash
+  pip install -r requirements.txt && python scripts/download_model.py
+  ```
+- Start Commandからモデルダウンロードを削除:
+  ```bash
+  gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
+  ```
+
 **エラー: `OSError: [Errno 30] Read-only file system: '/app/instance'`**
 
 解決策:
@@ -289,12 +323,19 @@ https://spotthediff.ricezero.fun
 
 ### ランタイムエラー
 
-**エラー: `Worker timeout`**
+**エラー: `Worker timeout` または `CRITICAL WORKER TIMEOUT`**
+
+原因:
+- 画像処理やモデルロードがgunicornのタイムアウト時間を超えた
 
 解決策:
-- Start Commandのタイムアウトを増やす:
+- Start Commandのタイムアウトを確認（300秒推奨）:
   ```bash
-  gunicorn -w 1 -b :8080 --timeout 240 --max-requests 100 run:app
+  gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
+  ```
+- Build Commandでモデルを事前ダウンロード（起動時の負荷を軽減）:
+  ```bash
+  pip install -r requirements.txt && python scripts/download_model.py
   ```
 
 **エラー: `Out of memory`**
