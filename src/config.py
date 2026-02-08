@@ -126,6 +126,13 @@ class ProductionConfig(Config):
     """Production configuration."""
 
     DEBUG = False
+
+    # Use writable /tmp directory for production deployment
+    UPLOAD_FOLDER = "/tmp/spotdiff/uploads"
+    OUTPUT_FOLDER = "/tmp/spotdiff/outputs"
+    MODEL_FOLDER = "/tmp/spotdiff/models"
+    DATABASE_PATH = "/tmp/spotdiff/spotdiff.db"
+
     SECURITY_HEADERS = {
         "force_https": True,
         "strict_transport_security": True,

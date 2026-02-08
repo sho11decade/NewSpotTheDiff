@@ -1,12 +1,15 @@
-# ビルドエラー修正ガイド
+# ビルド＆起動エラー修正ガイド
 
 ## 問題の概要
 
-Leapcellへのデプロイ時にビルドが失敗しました。これは主にOpenCVライブラリのインストールに必要なシステム依存関係が不足していることが原因です。
+Leapcellへのデプロイ時に2つの主要な問題が発生しました：
+
+1. **ビルドエラー**: OpenCVライブラリのインストールに必要なシステム依存関係の不足
+2. **起動エラー**: 読み取り専用ファイルシステムへの書き込み試行
 
 ## 実施した修正
 
-### 1. requirements.txtの変更
+### 1. requirements.txtの変更 ✅
 
 **変更前:**
 ```txt
@@ -36,7 +39,21 @@ opencv-contrib-python-headless>=4.8
 
 一部のプラットフォームがサポートしている`apt.txt`ファイルを作成し、必要なシステムパッケージをリストアップしました。
 
-### 4. ドキュメントの更新
+### 4. 本番環境の設定修正 ✅ **NEW**
+
+Leapcellの`/app`ディレクトリは読み取り専用のため、以下の変更を実施：
+
+- `ProductionConfig`クラスで書き込み可能な`/tmp`ディレクトリを使用
+- ディレクトリ: `/tmp/spotdiff/uploads`, `/tmp/spotdiff/outputs`, `/tmp/spotdiff/models`
+- データベース: `/tmp/spotdiff/spotdiff.db`
+- `file_manager.py`のエラーハンドリングを改善
+
+**理由:**
+- Leapcellの`/app`ディレクトリは読み取り専用
+- `/tmp`は書き込み可能な一時ストレージ
+- 環境変数`FLASK_ENV=production`で自動的に切り替わる
+
+### 5. ドキュメントの更新 ✅
 
 - `DEPLOYMENT.md` - トラブルシューティングセクションを強化
 - `README.md` - 依存関係情報を更新
@@ -93,9 +110,11 @@ pip install -r requirements.txt
    - Port: `8080`
 
 3. **環境変数の確認**
-   - `FLASK_ENV`: `production`
+   - `FLASK_ENV`: `production` **（重要！）**
    - `SECRET_KEY`: ランダムな文字列
    - `SITE_DOMAIN`: `spotthediff.ricezero.fun`
+
+   **注意:** `FLASK_ENV=production`を設定しないと、読み取り専用ファイルシステムエラーが発生します。
 
 4. **「Redeploy」ボタンをクリック**
 
@@ -105,7 +124,30 @@ pip install -r requirements.txt
 
 ## トラブルシューティング
 
-### それでもビルドが失敗する場合
+### 起動エラー: 読み取り専用ファイルシステム
+
+**エラー:**
+```
+OSError: [Errno 30] Read-only file system: '/app/instance'
+```
+
+**原因:**
+- Leapcellの`/app`ディレクトリは読み取り専用
+- アプリケーションがファイル保存のためにディレクトリを作成しようとしている
+
+**解決策:**
+1. 環境変数`FLASK_ENV`を`production`に設定
+2. これにより、自動的に`/tmp`ディレクトリを使用するようになります
+
+**Leapcellでの設定:**
+```
+Environment Variables:
+  FLASK_ENV = production
+```
+
+### ビルドエラー: OpenCVインストール失敗
+
+#### それでもビルドが失敗する場合
 
 **エラーメッセージを確認:**
 - ログの最後の行を確認

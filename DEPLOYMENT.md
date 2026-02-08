@@ -88,8 +88,11 @@ Leapcellのプロジェクト設定で以下の環境変数を設定してくだ
 
 | 変数名 | 値 | 説明 |
 |--------|-----|------|
+| `FLASK_ENV` | `production` | **重要**: 本番環境では必ず`production`に設定 |
 | `SECRET_KEY` | ランダムな文字列（例: `your-secret-key-here-change-this`） | Flaskセッション用のシークレットキー |
 | `SITE_DOMAIN` | `spotthediff.ricezero.fun` | あなたのドメイン名 |
+
+**重要:** `FLASK_ENV=production`を設定すると、アプリケーションは自動的に書き込み可能な`/tmp`ディレクトリを使用します。
 
 ### オプションの環境変数
 
@@ -247,6 +250,13 @@ https://spotthediff.ricezero.fun
 **注意:** プロジェクトでは既に`opencv-python-headless`を使用しており、GUIライブラリへの依存が少なくなっています。
 
 ### 起動エラー
+
+**エラー: `OSError: [Errno 30] Read-only file system: '/app/instance'`**
+
+解決策:
+- 環境変数`FLASK_ENV`が`production`に設定されていることを確認
+- 本番設定では自動的に書き込み可能な`/tmp`ディレクトリを使用します
+- Leapcellの環境変数に`FLASK_ENV=production`を追加
 
 **エラー: `ModuleNotFoundError: No module named 'src'`**
 

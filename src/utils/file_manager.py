@@ -11,9 +11,18 @@ logger = logging.getLogger(__name__)
 
 
 def ensure_directories(*dirs: str | Path) -> None:
-    """Create directories if they don't exist."""
+    """Create directories if they don't exist.
+
+    Logs errors but doesn't raise exceptions to allow app startup
+    even if some directories can't be created.
+    """
     for d in dirs:
-        Path(d).mkdir(parents=True, exist_ok=True)
+        try:
+            Path(d).mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Ensured directory exists: {d}")
+        except OSError as e:
+            logger.warning(f"Failed to create directory {d}: {e}")
+            # Don't raise - allow app to start even if some dirs can't be created
 
 
 def cleanup_expired_files(
@@ -47,7 +56,14 @@ def cleanup_expired_files(
 
 
 def get_output_dir(base_dir: str | Path, job_id: str) -> Path:
-    """Get (and create) the output directory for a job."""
+    """Get (and create) the output directory for a job.
+
+    Raises OSError if directory creation fails.
+    """
     out = Path(base_dir) / job_id
-    out.mkdir(parents=True, exist_ok=True)
+    try:
+        out.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        logger.error(f"Failed to create output directory {out}: {e}")
+        raise
     return out

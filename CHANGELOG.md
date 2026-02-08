@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **DEPLOYMENT.md**: Comprehensive Leapcell deployment guide
 - **TESTING.md**: Testing procedures and pre-deployment checklist
 - **CHANGELOG.md**: This changelog file
+- **BUILD_FIX_GUIDE.md**: Detailed troubleshooting guide for build and deployment issues
+- **build.sh**: Build script with system dependencies installation
+- **apt.txt**: System package requirements list
 
 #### Configuration Improvements
 - **DevelopmentConfig**: Optimized settings for local development
@@ -54,16 +57,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **pages.py**: Added sitemap.xml and robots.txt endpoints
 - **README.md**: Updated with v2.2.0 features
 - **pyproject.toml**: Version bumped to 2.2.0
+- **requirements.txt**: Changed to `opencv-python-headless` for server compatibility
+- **file_manager.py**: Improved error handling for directory creation
+- **ProductionConfig**: Uses `/tmp` directory for writable storage
 
 ### Fixed
 - **CSP Violations**: Removed inline event handlers that violated CSP
 - **Favicon 404**: Added proper favicon configuration
+- **Read-only Filesystem**: Production config now uses writable `/tmp` directory
+- **OpenCV Dependencies**: Switched to `opencv-python-headless` for better server compatibility
 
 ### Technical Details
 - Gunicorn configured with 2 workers and 120s timeout
 - Redis optional for rate limiting in production
 - Static folder properly configured for serving assets
 - Database path configurable via environment
+- Production deployment uses `/tmp` for file storage (uploads, outputs, models, database)
+- Improved error handling in `file_manager.py` for directory creation
+- Build scripts (build.sh, apt.txt) for system dependency management
 
 ## [2.1.1] - 2026-02-08
 
