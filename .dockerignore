@@ -1,0 +1,67 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Instance data (will be created at runtime)
+instance/
+*.db
+*.sqlite
+
+# Uploads and outputs (temporary data)
+uploads/
+outputs/
+
+# Model files (downloaded during build or runtime)
+*.pt
+
+# Documentation (not needed in container)
+README.md
+DEPLOYMENT.md
+DEPLOYMENT_HF.md
+docs/
+
+# GitHub
+.github/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files (use Hugging Face Spaces secrets instead)
+.env
+.env.local
+
+# Test files
+tests/
+*.test.py
+pytest.ini
+.pytest_cache/
