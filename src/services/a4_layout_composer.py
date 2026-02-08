@@ -174,11 +174,19 @@ class A4LayoutComposer:
             Font object or None if not found.
         """
         font_paths = [
-            "C:/Windows/Fonts/msgothic.ttc",  # MS Gothic (Windows)
-            "C:/Windows/Fonts/meiryo.ttc",  # Meiryo (Windows)
-            "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",  # Hiragino (Mac)
-            "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",  # Linux
+            # Windows fonts
+            "C:/Windows/Fonts/msgothic.ttc",  # MS Gothic
+            "C:/Windows/Fonts/meiryo.ttc",  # Meiryo
+            "C:/Windows/Fonts/YuGothM.ttc",  # Yu Gothic Medium
+            # Mac fonts
+            "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",  # Hiragino
+            "/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+            # Linux fonts (Debian/Ubuntu)
             "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",  # Noto Sans CJK
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",  # IPA Gothic
+            "/usr/share/fonts/truetype/takao-gothic/TakaoPGothic.ttf",  # Takao Gothic
         ]
 
         for font_path in font_paths:
@@ -187,5 +195,5 @@ class A4LayoutComposer:
             except (OSError, IOError):
                 continue
 
-        # Fallback to default font
+        # Fallback to default font (will not display Japanese correctly)
         return ImageFont.load_default()
