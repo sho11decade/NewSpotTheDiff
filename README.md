@@ -2,6 +2,20 @@
 
 **NewSpotTheDiff** is an AI-powered web application that automatically generates spot-the-difference puzzles from a single uploaded image. Using advanced computer vision techniques, it detects objects and creates multiple strategic modifications to generate engaging puzzle variations at multiple difficulty levels.
 
+## ✨ Version 2.2.0 - Production Deployment Ready
+
+**NEW:** Full production deployment support with SEO, OGP, and Google Analytics!
+
+- 🚀 **Leapcell Deployment**: Complete deployment guide for Leapcell hosting
+- 🔍 **SEO Optimization**: Meta tags, sitemap.xml, robots.txt for search engines
+- 📱 **OGP Support**: Open Graph Protocol for social media sharing
+- 📊 **Google Analytics**: Built-in GA4 integration for traffic tracking
+- 🌐 **Custom Domain**: Ready for custom domain (spotthediff.ricezero.fun)
+- ⚙️ **Environment Config**: Separate development and production configurations
+- 📚 **Japanese Documentation**: Complete README_JP.md and deployment guide
+
+[Read more about deployment features →](DEPLOYMENT.md)
+
 ## ✨ Version 2.1.1 - Security & Pages Update
 
 **NEW:** Enhanced security measures and informational pages for production readiness!

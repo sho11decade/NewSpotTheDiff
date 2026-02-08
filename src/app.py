@@ -8,7 +8,7 @@ from pathlib import Path
 
 from flask import Flask
 
-from src.config import Config
+from src.config import config
 from src.database import init_db
 from src.routes import register_blueprints
 from src.services.segmentation import SegmentationService
@@ -23,7 +23,20 @@ from src.services.job_manager import JobManager
 from src.utils.file_manager import ensure_directories
 
 
-def create_app(config_class=Config) -> Flask:
+def create_app(config_name=None) -> Flask:
+    """Create and configure Flask application.
+
+    Args:
+        config_name: Configuration name ('development', 'production', or None for auto-detect)
+    """
+    if config_name is None:
+        # Auto-detect environment
+        config_name = os.environ.get("FLASK_ENV", "development")
+        if config_name not in config:
+            config_name = "development"
+
+    config_class = config[config_name]
+
     app = Flask(
         __name__,
         static_folder=str(Path(__file__).parent / "static"),

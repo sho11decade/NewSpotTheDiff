@@ -1,7 +1,7 @@
 [project]
 name = "spot-the-diff"
-version = "2.1.0"
-description = "AI-powered spot-the-difference puzzle generator with quality evaluation"
+version = "2.2.0"
+description = "AI-powered spot-the-difference puzzle generator with quality evaluation and production deployment support"
 requires-python = ">=3.10"
 dependencies = [
     "flask>=3.0",

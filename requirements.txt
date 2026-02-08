@@ -1,0 +1,18 @@
+# Core Dependencies
+flask>=3.0
+pillow>=10.0
+opencv-python>=4.8
+opencv-contrib-python>=4.8
+ultralytics>=8.0
+numpy>=1.24
+scikit-image>=0.21.0
+
+# Security & Rate Limiting
+flask-talisman>=1.0
+flask-limiter>=3.5
+
+# Production Server
+gunicorn>=21.2
+
+# Storage
+redis>=5.0

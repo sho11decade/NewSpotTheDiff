@@ -3,9 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}間違い探し自動生成{% endblock %}</title>
+
+    <!-- Primary Meta Tags -->
+    <title>{% block title %}{{ config.SITE_NAME }}{% endblock %}</title>
+    <meta name="title" content="{% block meta_title %}{{ config.SITE_NAME }}{% endblock %}">
+    <meta name="description" content="{% block meta_description %}{{ config.SITE_DESCRIPTION }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ config.SITE_KEYWORDS }}{% endblock %}">
+    <meta name="author" content="{{ config.SITE_AUTHOR }}">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}{{ config.SITE_URL }}{{ request.path }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{{ config.SITE_NAME }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ config.SITE_DESCRIPTION }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ config.SITE_URL }}{{ config.SITE_IMAGE }}{% endblock %}">
+    <meta property="og:site_name" content="{{ config.SITE_NAME }}">
+    <meta property="og:locale" content="ja_JP">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{% block twitter_url %}{{ config.SITE_URL }}{{ request.path }}{% endblock %}">
+    <meta property="twitter:title" content="{% block twitter_title %}{{ config.SITE_NAME }}{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}{{ config.SITE_DESCRIPTION }}{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{{ config.SITE_URL }}{{ config.SITE_IMAGE }}{% endblock %}">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical %}{{ config.SITE_URL }}{{ request.path }}{% endblock %}">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Google Analytics -->
+    {% if config.GOOGLE_ANALYTICS_ID %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ config.GOOGLE_ANALYTICS_ID }}');
+    </script>
+    {% endif %}
 </head>
 <body>
     <header class="header">

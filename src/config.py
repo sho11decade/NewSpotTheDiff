@@ -11,6 +11,18 @@ INSTANCE_DIR = BASE_DIR / "instance"
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
 
+    # Site settings
+    SITE_NAME = "Spot the Diff - AI間違い探し自動生成"
+    SITE_DOMAIN = os.environ.get("SITE_DOMAIN", "spotthediff.ricezero.fun")
+    SITE_URL = f"https://{os.environ.get('SITE_DOMAIN', 'spotthediff.ricezero.fun')}"
+    SITE_DESCRIPTION = "AIが自動的に間違い探しを生成。画像をアップロードするだけで、簡単に高品質な間違い探しパズルを作成できます。"
+    SITE_KEYWORDS = "間違い探し,AI,自動生成,パズル,画像処理,FastSAM,無料ツール"
+    SITE_AUTHOR = "RiceZero"
+    SITE_IMAGE = "/static/og-image.svg"
+
+    # Google Analytics
+    GOOGLE_ANALYTICS_ID = os.environ.get("GOOGLE_ANALYTICS_ID", "")
+
     # File upload
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB
     UPLOAD_FOLDER = str(INSTANCE_DIR / "uploads")
@@ -66,9 +78,37 @@ class Config:
 
     # Security settings
     SECURITY_HEADERS = {
-        "force_https": False,  # Set to True in production
+        "force_https": os.environ.get("FORCE_HTTPS", "False").lower() == "true",
         "strict_transport_security": True,
         "strict_transport_security_max_age": 31536000,
+        "content_security_policy": {
+            "default-src": "'self'",
+            "script-src": "'self' 'unsafe-inline' https://www.googletagmanager.com",
+            "style-src": "'self' 'unsafe-inline'",
+            "img-src": "'self' data: blob: https://www.google-analytics.com",
+            "connect-src": "'self' https://www.google-analytics.com",
+        },
+        "x_content_type_options": True,
+        "x_frame_options": "SAMEORIGIN",
+        "x_xss_protection": True,
+    }
+
+    # Rate limiting
+    RATELIMIT_ENABLED = True
+    RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
+    RATELIMIT_DEFAULT = "100 per hour"
+    RATELIMIT_UPLOAD = "10 per minute"
+    RATELIMIT_GENERATE = "5 per minute"
+
+
+class DevelopmentConfig(Config):
+    """Development configuration."""
+
+    DEBUG = True
+    SECURITY_HEADERS = {
+        "force_https": False,
+        "strict_transport_security": False,
+        "strict_transport_security_max_age": 0,
         "content_security_policy": {
             "default-src": "'self'",
             "script-src": "'self' 'unsafe-inline'",
@@ -79,10 +119,33 @@ class Config:
         "x_frame_options": "SAMEORIGIN",
         "x_xss_protection": True,
     }
+    RATELIMIT_ENABLED = False
 
-    # Rate limiting
-    RATELIMIT_ENABLED = True
-    RATELIMIT_STORAGE_URI = "memory://"
-    RATELIMIT_DEFAULT = "100 per hour"
-    RATELIMIT_UPLOAD = "10 per minute"
-    RATELIMIT_GENERATE = "5 per minute"
+
+class ProductionConfig(Config):
+    """Production configuration."""
+
+    DEBUG = False
+    SECURITY_HEADERS = {
+        "force_https": True,
+        "strict_transport_security": True,
+        "strict_transport_security_max_age": 31536000,
+        "content_security_policy": {
+            "default-src": "'self'",
+            "script-src": "'self' 'unsafe-inline' https://www.googletagmanager.com",
+            "style-src": "'self' 'unsafe-inline'",
+            "img-src": "'self' data: blob: https://www.google-analytics.com",
+            "connect-src": "'self' https://www.google-analytics.com",
+        },
+        "x_content_type_options": True,
+        "x_frame_options": "SAMEORIGIN",
+        "x_xss_protection": True,
+    }
+
+
+# Configuration dictionary
+config = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+    "default": DevelopmentConfig,
+}
