@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gc
 import logging
 from pathlib import Path
 
@@ -45,6 +46,18 @@ class SegmentationService:
         self._model = FastSAM(str(path))
         logger.info("FastSAM model loaded successfully.")
 
+    def unload_model(self) -> None:
+        """Unload model from memory to free up space.
+
+        Call this method when you need to free memory in a 4GB environment.
+        The model will be reloaded automatically on next segment() call.
+        """
+        if self._model is not None:
+            logger.info("Unloading FastSAM model to free memory...")
+            self._model = None
+            gc.collect()
+            logger.info("FastSAM model unloaded.")
+
     def segment(
         self,
         image: np.ndarray,
@@ -82,6 +95,13 @@ class SegmentationService:
         )
 
         segments = self._extract_segments(results, h, w, min_area, max_area)
+
+        # Memory cleanup for 4GB environment
+        # Clear temporary data after segmentation
+        del rgb
+        del results
+        gc.collect()
+
         logger.info(
             "Segmentation complete: %d segments (filtered from raw results)",
             len(segments),

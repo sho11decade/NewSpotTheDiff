@@ -4,7 +4,7 @@
 (function () {
     "use strict";
 
-    var POLL_INTERVAL = 1500; // ms
+    var POLL_INTERVAL = 500; // ms - Faster polling for better responsiveness
     var ESTIMATED_TIME = 15; // seconds (increased for new steps)
 
     var progressFill = document.getElementById("progressFill");
@@ -36,7 +36,13 @@
 
                 progressFill.style.width = progress + "%";
                 progressText.textContent = Math.round(progress) + "%";
-                stepText.textContent = step || "処理中...";
+
+                // Show specific message based on status
+                if (data.status === "queued") {
+                    stepText.textContent = "処理開始を待機中...";
+                } else {
+                    stepText.textContent = step || "処理中...";
+                }
 
                 // Update step visualization
                 updateSteps(progress, step);

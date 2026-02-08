@@ -125,7 +125,25 @@ class JobManager:
                 current_step="エラー",
             )
         finally:
+            # Aggressive memory cleanup for 4GB hosting environment
+            # Explicitly delete local variables to free memory immediately
+            try:
+                del image
+                del result
+                del original_with_answers
+                del modified_with_answers
+                del a4_layout
+                del a4_layout_with_answers
+            except (NameError, UnboundLocalError):
+                # Variables may not be defined if error occurred early
+                pass
+
+            # Force garbage collection
             gc.collect()
+
+            # Additional numpy/opencv cleanup
+            if hasattr(np, 'clear_memo'):
+                np.clear_memo()  # Clear numpy memo cache if available
 
     def _update(self, job_id: str, **kwargs) -> None:
         """Thread-safe status update."""

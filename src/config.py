@@ -33,13 +33,13 @@ class Config:
     # Image constraints
     MIN_IMAGE_DIMENSION = 512
     MAX_IMAGE_DIMENSION = 4096
-    PROCESSING_IMAGE_SIZE = 1024
+    PROCESSING_IMAGE_SIZE = 768  # Reduced from 1024 for 4GB memory optimization
 
     # Database
     DATABASE_PATH = str(INSTANCE_DIR / "spotdiff.db")
 
     # Job processing
-    MAX_WORKERS = 2
+    MAX_WORKERS = 1  # Reduced from 2 for 4GB memory optimization
     SESSION_EXPIRY_HOURS = 24
 
     # FastSAM
