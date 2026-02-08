@@ -1,8 +1,8 @@
 # Core Dependencies
 flask>=3.0
 pillow>=10.0
-opencv-python>=4.8
-opencv-contrib-python>=4.8
+opencv-python-headless>=4.8
+opencv-contrib-python-headless>=4.8
 ultralytics>=8.0
 numpy>=1.24
 scikit-image>=0.21.0

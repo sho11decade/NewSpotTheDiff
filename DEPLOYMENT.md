@@ -44,8 +44,8 @@ NewSpotTheDiff/
 ```txt
 flask>=3.0
 pillow>=10.0
-opencv-python>=4.8
-opencv-contrib-python>=4.8
+opencv-python-headless>=4.8
+opencv-contrib-python-headless>=4.8
 ultralytics>=8.0
 numpy>=1.24
 scikit-image>=0.21.0
@@ -54,6 +54,8 @@ flask-limiter>=3.5
 gunicorn>=21.2
 redis>=5.0
 ```
+
+**重要:** `opencv-python-headless`を使用していますこれはGUIライブラリへの依存が少なく、サーバー環境に最適です。
 
 ### 1.3 GitHubへのプッシュ
 
@@ -121,6 +123,20 @@ Leapcellのビルド設定で以下を入力してください：
 | **Build Command** | `pip install -r requirements.txt` |
 | **Start Command** | `gunicorn -w 2 -b :8080 --timeout 120 run:app` |
 | **Port** | `8080` |
+
+**重要:** OpenCVのインストールにシステムライブラリが必要です。標準のビルドコマンドで失敗する場合は、以下を使用してください：
+
+```bash
+apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 && pip install -r requirements.txt
+```
+
+または、build.shスクリプトを使用：
+
+```bash
+chmod +x build.sh && ./build.sh
+```
+
+**注意:** `requirements.txt`では`opencv-python-headless`を使用しています。これはGUIライブラリへの依存が少なく、サーバー環境に適しています。
 
 ### Start Commandの説明
 
@@ -214,14 +230,21 @@ https://spotthediff.ricezero.fun
 - リポジトリのルートに`requirements.txt`があることを確認
 - ビルドコマンドが正しいことを確認
 
-**エラー: `opencv-python installation failed`**
+**エラー: `opencv-python installation failed`または`opencv-contrib-python installation failed`**
 
-解決策:
-- システム依存関係が不足している可能性があります
-- Build Commandを以下に変更:
+解決策1（推奨）:
+- Build Commandにシステム依存関係のインストールを追加:
   ```bash
-  apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0 && pip install -r requirements.txt
+  apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 && pip install -r requirements.txt
   ```
+
+解決策2:
+- ビルドスクリプトを使用:
+  ```bash
+  chmod +x build.sh && ./build.sh
+  ```
+
+**注意:** プロジェクトでは既に`opencv-python-headless`を使用しており、GUIライブラリへの依存が少なくなっています。
 
 ### 起動エラー
 
