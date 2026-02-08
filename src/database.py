@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS generation_history (
@@ -28,10 +31,31 @@ CREATE INDEX IF NOT EXISTS idx_expires_at ON generation_history(expires_at);
 
 
 def init_db(db_path: str) -> None:
-    """Create the database and tables if they don't exist."""
-    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as conn:
-        conn.executescript(_SCHEMA)
+    """Create the database and tables if they don't exist.
+
+    Raises OSError if the database directory cannot be created.
+    """
+    db_file = Path(db_path)
+
+    try:
+        # Create parent directory if needed
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Database directory ensured: {db_file.parent}")
+    except OSError as e:
+        logger.error(f"Failed to create database directory {db_file.parent}: {e}")
+        raise OSError(
+            f"Cannot create database directory {db_file.parent}. "
+            f"Please ensure FLASK_ENV=production is set for deployment."
+        ) from e
+
+    try:
+        # Create database and schema
+        with sqlite3.connect(db_path) as conn:
+            conn.executescript(_SCHEMA)
+        logger.info(f"Database initialized: {db_path}")
+    except sqlite3.Error as e:
+        logger.error(f"Failed to initialize database: {e}")
+        raise
 
 
 def save_generation(
