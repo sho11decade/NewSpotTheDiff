@@ -122,6 +122,13 @@ def _init_services(app: Flask) -> None:
         iou=app.config["FASTSAM_IOU"],
         imgsz=app.config["PROCESSING_IMAGE_SIZE"],
     )
+
+    # Pre-load FastSAM model at startup to avoid first-request timeout
+    # This takes ~30-60 seconds but prevents WORKER TIMEOUT on first request
+    logging.info("Pre-loading FastSAM model at startup...")
+    segmentation._ensure_model()
+    logging.info("FastSAM model pre-loaded successfully")
+
     saliency = SaliencyService()
     inpainting = InpaintingService(radius=app.config["INPAINT_RADIUS"])
     color_changer = ColorChanger()

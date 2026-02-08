@@ -124,7 +124,7 @@ Leapcellのビルド設定で以下を入力してください：
 |---------|-----|
 | **Runtime** | Python 3.10+ |
 | **Build Command** | `pip install -r requirements.txt` |
-| **Start Command** | `gunicorn -w 1 -b :8080 --timeout 180 --max-requests 100 run:app` |
+| **Start Command** | `gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app` |
 | **Port** | `8080` |
 
 **重要:** OpenCVのインストールにシステムライブラリが必要です。標準のビルドコマンドで失敗する場合は、以下を使用してください：
@@ -144,12 +144,12 @@ chmod +x build.sh && ./build.sh
 ### Start Commandの説明
 
 ```bash
-gunicorn -w 1 -b :8080 --timeout 180 --max-requests 100 run:app
+gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
 ```
 
 - `-w 1`: ワーカープロセス数（**4GBメモリ環境用に最適化**。メモリに余裕がある場合は増やせます）
 - `-b :8080`: バインドするポート
-- `--timeout 180`: タイムアウト時間（画像処理に十分な時間を確保。768pxサイズ処理用に延長）
+- `--timeout 300`: タイムアウト時間（FastSAMモデルロード + 画像処理に十分な時間を確保）
 - `--max-requests 100`: ワーカーを100リクエストごとに再起動（メモリリーク防止）
 - `run:app`: `run.py`ファイルの`app`オブジェクトを起動
 
@@ -180,7 +180,7 @@ Leapcellの永続ストレージ機能を使用して、モデルファイルを
 
 ```bash
 # Start Commandを変更
-python scripts/download_model.py && gunicorn -w 1 -b :8080 --timeout 180 --max-requests 100 run:app
+python scripts/download_model.py && gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app
 ```
 
 ## ステップ6: デプロイ
@@ -267,7 +267,7 @@ https://spotthediff.ricezero.fun
 **エラー: `ModuleNotFoundError: No module named 'src'`**
 
 解決策:
-- Start Commandが正しいことを確認: `gunicorn -w 1 -b :8080 --timeout 180 --max-requests 100 run:app`
+- Start Commandが正しいことを確認: `gunicorn -w 1 -b :8080 --timeout 300 --max-requests 100 run:app`
 
 **エラー: `FileNotFoundError: FastSAM model not found`**
 
@@ -359,7 +359,7 @@ git push origin main
 
 1. ワーカー数を増やす（8GB以上のメモリが推奨）
    ```bash
-   gunicorn -w 2 -b :8080 --timeout 180 --max-requests 100 run:app
+   gunicorn -w 2 -b :8080 --timeout 300 --max-requests 100 run:app
    ```
    **注意:** 各ワーカーは約1.5-2GBのメモリを消費します。4GBメモリ環境では`-w 1`を維持してください。
 
