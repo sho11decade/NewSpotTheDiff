@@ -25,13 +25,36 @@
     <div class="result-actions">
         <button class="btn btn--primary" id="downloadOriginal">オリジナルをDL</button>
         <button class="btn btn--primary" id="downloadModified">間違い探しをDL</button>
-        <button class="btn btn--secondary" id="showAnswers">答えを見る</button>
+        <button class="btn btn--primary" id="downloadA4Layout">A4レイアウトをDL</button>
+        <button class="btn btn--primary" id="downloadAnswerImage">答え画像をDL</button>
+        <button class="btn btn--secondary" id="toggleAnswers">答えを見る</button>
+        <button class="btn btn--secondary" id="toggleA4View">A4表示に切替</button>
         <a href="/" class="btn btn--secondary">新しい画像で作成</a>
+    </div>
+
+    <div id="a4Section" class="a4-section" hidden>
+        <h3>A4横サイズレイアウト</h3>
+        <div style="text-align: center; margin-top: 20px;">
+            <img id="a4LayoutImage" style="max-width: 100%; border: 1px solid #ddd;" alt="A4レイアウト">
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+            <button class="btn btn--primary" id="downloadA4WithAnswers">A4答え付きをDL</button>
+        </div>
     </div>
 
     <div id="answersSection" class="answers" hidden>
         <h3>答え（変更箇所）</h3>
         <ul id="answersList"></ul>
+        <div class="comparison" style="margin-top: 20px;">
+            <div class="comparison__panel">
+                <h4>元画像（答え表示）</h4>
+                <img id="originalWithAnswers" class="comparison__image" alt="答え付き元画像">
+            </div>
+            <div class="comparison__panel">
+                <h4>間違い探し（答え表示）</h4>
+                <img id="modifiedWithAnswers" class="comparison__image" alt="答え付き間違い探し">
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

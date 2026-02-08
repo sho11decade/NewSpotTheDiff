@@ -79,5 +79,9 @@ def get_result(job_id: str):
         "job_id": job_id,
         "original_image_url": f"/outputs/{job_id}/original.png",
         "modified_image_url": f"/outputs/{job_id}/modified.png",
+        "original_with_answers_url": f"/outputs/{job_id}/original_with_answers.png",
+        "modified_with_answers_url": f"/outputs/{job_id}/modified_with_answers.png",
+        "a4_layout_url": f"/outputs/{job_id}/a4_layout.png",
+        "a4_layout_with_answers_url": f"/outputs/{job_id}/a4_layout_with_answers.png",
         "metadata": metadata,
     })

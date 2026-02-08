@@ -357,6 +357,129 @@ main.container {
     }
 }
 
+.estimated-time {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+/* Process steps visualization */
+.process-steps {
+    max-width: 600px;
+    margin: 2.5rem auto 2rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 0.5rem;
+    border-radius: 8px;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    transition: all 0.3s ease;
+}
+
+.step.in-progress {
+    border-color: var(--color-primary);
+    background: rgba(37, 99, 235, 0.05);
+    transform: scale(1.05);
+}
+
+.step.complete {
+    border-color: var(--color-success);
+    background: rgba(22, 163, 74, 0.05);
+}
+
+.step-icon {
+    font-size: 2rem;
+    line-height: 1;
+    transition: transform 0.3s ease;
+}
+
+.step.in-progress .step-icon {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.step.complete .step-icon {
+    animation: bounce 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes bounce {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--color-text);
+}
+
+.step-status {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.step.in-progress .step-status {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.step.complete .step-status {
+    color: var(--color-success);
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .process-steps {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .step {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0.75rem;
+    }
+
+    .step-icon {
+        font-size: 1.5rem;
+        min-width: 2rem;
+    }
+
+    .step-label,
+    .step-status {
+        text-align: left;
+    }
+}
+
 /* ===== Result ===== */
 .result-info {
     display: flex;

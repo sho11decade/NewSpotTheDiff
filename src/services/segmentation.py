@@ -96,7 +96,7 @@ class SegmentationService:
         min_area: int,
         max_area: int,
     ) -> list[Segment]:
-        """Extract Segment objects from FastSAM results."""
+        """Extract Segment objects from FastSAM results with improved filtering."""
         segments: list[Segment] = []
 
         if not results or results[0].masks is None:
@@ -120,11 +120,16 @@ class SegmentationService:
             mask_bool = mask > 0.5
             area = int(mask_bool.sum())
 
+            # Basic area filtering
             if area < min_area or area > max_area:
                 continue
 
             bbox = self._mask_to_bbox(mask_bool)
             if bbox is None:
+                continue
+
+            # Shape quality filtering
+            if not self._is_good_shape(mask_bool, bbox):
                 continue
 
             conf = float(boxes.conf[i]) if boxes is not None and i < len(boxes.conf) else 0.0
@@ -139,6 +144,9 @@ class SegmentationService:
                 )
             )
 
+        # Remove overlapping segments
+        segments = self._remove_overlaps(segments)
+
         # Sort by area descending
         segments.sort(key=lambda s: s.area, reverse=True)
         # Re-assign sequential ids
@@ -146,6 +154,85 @@ class SegmentationService:
             seg.id = idx
 
         return segments
+
+    def _is_good_shape(self, mask: np.ndarray, bbox: list[int]) -> bool:
+        """Filter out segments with poor shape characteristics.
+
+        Args:
+            mask: Boolean mask of the segment.
+            bbox: Bounding box [x1, y1, x2, y2].
+
+        Returns:
+            True if the segment has acceptable shape characteristics.
+        """
+        x1, y1, x2, y2 = bbox
+        bbox_width = x2 - x1
+        bbox_height = y2 - y1
+
+        # Skip very thin segments (likely artifacts or edges)
+        if bbox_width < 5 or bbox_height < 5:
+            return False
+
+        # Calculate aspect ratio
+        aspect_ratio = max(bbox_width, bbox_height) / max(min(bbox_width, bbox_height), 1)
+
+        # Skip extremely elongated segments (likely edges or artifacts)
+        if aspect_ratio > 10:
+            return False
+
+        # Calculate compactness (area / bbox_area)
+        # Good segments should fill their bounding box reasonably
+        bbox_area = bbox_width * bbox_height
+        mask_area = np.sum(mask)
+        compactness = mask_area / max(bbox_area, 1)
+
+        # Skip very sparse segments
+        if compactness < 0.15:
+            return False
+
+        return True
+
+    def _remove_overlaps(self, segments: list[Segment], iou_threshold: float = 0.7) -> list[Segment]:
+        """Remove highly overlapping segments, keeping the one with higher confidence.
+
+        Args:
+            segments: List of segments to filter.
+            iou_threshold: IoU threshold above which segments are considered overlapping.
+
+        Returns:
+            Filtered list of segments with overlaps removed.
+        """
+        if len(segments) <= 1:
+            return segments
+
+        # Sort by confidence (descending) to keep higher confidence segments
+        segments_sorted = sorted(segments, key=lambda s: s.confidence, reverse=True)
+
+        keep = []
+        for seg in segments_sorted:
+            # Check if this segment overlaps significantly with any kept segment
+            overlaps = False
+            for kept_seg in keep:
+                iou = self._calculate_iou(seg.mask, kept_seg.mask)
+                if iou > iou_threshold:
+                    overlaps = True
+                    break
+
+            if not overlaps:
+                keep.append(seg)
+
+        return keep
+
+    @staticmethod
+    def _calculate_iou(mask1: np.ndarray, mask2: np.ndarray) -> float:
+        """Calculate Intersection over Union between two masks."""
+        intersection = np.logical_and(mask1, mask2).sum()
+        union = np.logical_or(mask1, mask2).sum()
+
+        if union == 0:
+            return 0.0
+
+        return float(intersection) / float(union)
 
     @staticmethod
     def _mask_to_bbox(mask: np.ndarray) -> list[int] | None:

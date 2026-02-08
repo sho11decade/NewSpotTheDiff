@@ -14,9 +14,40 @@
 
     <p class="step-text" id="stepText">待機中...</p>
 
+    <!-- Process steps visualization -->
+    <div class="process-steps">
+        <div class="step" id="step-load">
+            <div class="step-icon">📁</div>
+            <div class="step-label">画像読み込み</div>
+            <div class="step-status">待機中</div>
+        </div>
+        <div class="step" id="step-segment">
+            <div class="step-icon">🔍</div>
+            <div class="step-label">オブジェクト検出</div>
+            <div class="step-status">待機中</div>
+        </div>
+        <div class="step" id="step-saliency">
+            <div class="step-icon">🎯</div>
+            <div class="step-label">顕著性解析</div>
+            <div class="step-status">待機中</div>
+        </div>
+        <div class="step" id="step-modify">
+            <div class="step-icon">✨</div>
+            <div class="step-label">画像変更</div>
+            <div class="step-status">待機中</div>
+        </div>
+        <div class="step" id="step-finalize">
+            <div class="step-icon">✅</div>
+            <div class="step-label">最終処理</div>
+            <div class="step-status">待機中</div>
+        </div>
+    </div>
+
     <div class="processing-animation">
         <div class="spinner"></div>
     </div>
+
+    <p class="estimated-time" id="estimatedTime"></p>
 </div>
 {% endblock %}
 

@@ -16,6 +16,8 @@ from src.services.saliency import SaliencyService
 from src.services.inpainting import InpaintingService
 from src.services.color_changer import ColorChanger
 from src.services.object_duplicator import ObjectDuplicator
+from src.services.answer_visualizer import AnswerVisualizer
+from src.services.a4_layout_composer import A4LayoutComposer
 from src.services.difference_generator import DifferenceGenerator
 from src.services.job_manager import JobManager
 from src.utils.file_manager import ensure_directories
@@ -70,6 +72,8 @@ def _init_services(app: Flask) -> None:
     inpainting = InpaintingService(radius=app.config["INPAINT_RADIUS"])
     color_changer = ColorChanger()
     duplicator = ObjectDuplicator()
+    answer_visualizer = AnswerVisualizer()
+    a4_composer = A4LayoutComposer()
 
     generator = DifferenceGenerator(
         segmentation=segmentation,
@@ -84,6 +88,8 @@ def _init_services(app: Flask) -> None:
 
     job_manager = JobManager(
         generator=generator,
+        answer_visualizer=answer_visualizer,
+        a4_composer=a4_composer,
         output_folder=app.config["OUTPUT_FOLDER"],
         max_workers=app.config["MAX_WORKERS"],
     )

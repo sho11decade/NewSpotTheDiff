@@ -13,6 +13,8 @@ import numpy as np
 
 from src.models.job import JobStatus, JobState
 from src.services.difference_generator import DifferenceGenerator
+from src.services.answer_visualizer import AnswerVisualizer
+from src.services.a4_layout_composer import A4LayoutComposer
 from src.utils.image_io import load_image, save_image
 
 logger = logging.getLogger(__name__)
@@ -24,10 +26,14 @@ class JobManager:
     def __init__(
         self,
         generator: DifferenceGenerator,
+        answer_visualizer: AnswerVisualizer,
+        a4_composer: A4LayoutComposer,
         output_folder: str,
         max_workers: int = 2,
     ) -> None:
         self._generator = generator
+        self._answer_visualizer = answer_visualizer
+        self._a4_composer = a4_composer
         self._output_folder = output_folder
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._jobs: dict[str, JobStatus] = {}
@@ -65,6 +71,37 @@ class JobManager:
 
             save_image(result.original_image, out_dir / "original.png")
             save_image(result.modified_image, out_dir / "modified.png")
+
+            # Generate and save answer images
+            self._update(job_id, progress=92, current_step="答え画像を生成中...")
+            original_with_answers, modified_with_answers = self._answer_visualizer.create_answer_overlay(
+                result.original_image,
+                result.modified_image,
+                result.differences,
+            )
+            save_image(original_with_answers, out_dir / "original_with_answers.png")
+            save_image(modified_with_answers, out_dir / "modified_with_answers.png")
+
+            # Generate and save A4 layout
+            self._update(job_id, progress=96, current_step="A4レイアウトを生成中...")
+            a4_layout = self._a4_composer.compose_side_by_side(
+                result.original_image,
+                result.modified_image,
+                left_title="元の画像",
+                right_title="間違い探し",
+                title="間違い探しパズル",
+            )
+            save_image(a4_layout, out_dir / "a4_layout.png")
+
+            # Also create A4 layout with answers
+            a4_layout_with_answers = self._a4_composer.compose_side_by_side(
+                original_with_answers,
+                modified_with_answers,
+                left_title="元の画像（答え）",
+                right_title="間違い探し（答え）",
+                title="間違い探しパズル - 答え",
+            )
+            save_image(a4_layout_with_answers, out_dir / "a4_layout_with_answers.png")
 
             metadata = result.get_metadata_with_differences()
             with open(out_dir / "metadata.json", "w", encoding="utf-8") as f:
