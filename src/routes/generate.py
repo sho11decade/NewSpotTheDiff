@@ -61,6 +61,14 @@ def generate():
 
 @bp.route("/status/<job_id>", methods=["GET"])
 def get_status(job_id: str):
+    # Apply relaxed rate limiting for status polling
+    # Status endpoint is polled every 500ms, so needs higher limit
+    limiter = _get_limiter()
+    if limiter:
+        limiter.limit(current_app.config.get("RATELIMIT_STATUS", "500 per 5 minutes"))(
+            lambda: None
+        )()
+
     job_manager = current_app.extensions["job_manager"]
     status = job_manager.get_status(job_id)
     if status is None:

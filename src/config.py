@@ -99,6 +99,7 @@ class Config:
     RATELIMIT_DEFAULT = "100 per hour"
     RATELIMIT_UPLOAD = "10 per minute"
     RATELIMIT_GENERATE = "5 per minute"
+    RATELIMIT_STATUS = "500 per 5 minutes"  # Relaxed limit for status polling (500ms interval)
 
 
 class DevelopmentConfig(Config):
