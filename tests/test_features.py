@@ -21,6 +21,7 @@ from src.services.a4_layout_composer import A4LayoutComposer
 from src.services.inpainting import InpaintingService
 from src.services.color_changer import ColorChanger
 from src.services.object_duplicator import ObjectDuplicator
+from src.services.quality_evaluator import QualityEvaluator
 from src.models.difference import Difference
 from src.models.segment import Segment
 
@@ -195,6 +196,59 @@ def test_object_duplicator():
     return True
 
 
+def test_quality_evaluator():
+    """Test QualityEvaluator class."""
+    print("Testing QualityEvaluator...")
+
+    evaluator = QualityEvaluator()
+
+    # Create test image with a clean object
+    image = np.ones((300, 300, 3), dtype=np.uint8) * 200
+
+    # Create a circular mask (should pass quality check)
+    mask = np.zeros((300, 300), dtype=np.uint8)
+    cv2.circle(mask, (150, 150), 50, 255, -1)
+
+    segment = Segment(
+        id=1,
+        mask=mask,
+        bbox=[100, 100, 200, 200],
+        area=int(np.pi * 50 * 50),
+        confidence=0.95,
+    )
+
+    # Test segment quality evaluation
+    is_acceptable, quality_score, reason = evaluator.evaluate_segment_quality(image, segment)
+
+    assert isinstance(is_acceptable, bool), "is_acceptable should be boolean"
+    assert 0.0 <= quality_score <= 1.0, f"Quality score should be 0-1, got {quality_score}"
+    assert isinstance(reason, str), "Reason should be a string"
+
+    print(f"  Segment quality: acceptable={is_acceptable}, score={quality_score:.2f}, reason={reason}")
+
+    # Test modification quality evaluation
+    original_region = image[100:200, 100:200].copy()
+    modified_region = original_region.copy()
+    # Make a slight modification
+    modified_region[mask[100:200, 100:200] > 0] = [180, 180, 180]
+    local_mask = mask[100:200, 100:200]
+
+    is_acceptable_mod, quality_score_mod, reason_mod = evaluator.evaluate_modification_quality(
+        original_region,
+        modified_region,
+        local_mask,
+        "color_change",
+    )
+
+    assert isinstance(is_acceptable_mod, bool), "is_acceptable should be boolean"
+    assert 0.0 <= quality_score_mod <= 1.0, f"Quality score should be 0-1, got {quality_score_mod}"
+
+    print(f"  Modification quality: acceptable={is_acceptable_mod}, score={quality_score_mod:.2f}")
+
+    print("✅ QualityEvaluator test passed")
+    return True
+
+
 def run_all_tests():
     """Run all tests."""
     print("="*60)
@@ -208,6 +262,7 @@ def run_all_tests():
         test_inpainting_service,
         test_color_changer,
         test_object_duplicator,
+        test_quality_evaluator,
     ]
 
     passed = 0

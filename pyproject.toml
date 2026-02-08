@@ -1,7 +1,7 @@
 [project]
 name = "spot-the-diff"
-version = "0.1.0"
-description = "AI-powered spot-the-difference puzzle generator"
+version = "2.1.0"
+description = "AI-powered spot-the-difference puzzle generator with quality evaluation"
 requires-python = ">=3.10"
 dependencies = [
     "flask>=3.0",
@@ -10,6 +10,7 @@ dependencies = [
     "opencv-contrib-python>=4.8",
     "ultralytics>=8.0",
     "numpy>=1.24",
+    "scikit-image>=0.21.0",
 ]
 
 [project.optional-dependencies]

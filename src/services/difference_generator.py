@@ -17,6 +17,7 @@ from src.services.saliency import SaliencyService
 from src.services.inpainting import InpaintingService
 from src.services.color_changer import ColorChanger
 from src.services.object_duplicator import ObjectDuplicator
+from src.services.quality_evaluator import QualityEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class DifferenceGenerator:
         self._inp = inpainting
         self._col = color_changer
         self._dup = object_duplicator
+        self._quality = QualityEvaluator()
         self._difficulty_config = difficulty_config
         self._min_area_ratio = segment_min_area_ratio
         self._max_area_ratio = segment_max_area_ratio
@@ -128,15 +130,36 @@ class DifferenceGenerator:
     def _select_segments(
         self, ranked: list[Segment], difficulty: str
     ) -> list[Segment]:
-        """Pick segments based on difficulty settings."""
+        """Pick segments based on difficulty settings with quality filtering."""
         config = self._difficulty_config[difficulty]
         num_changes = config["num_changes"]
         max_saliency = config["max_saliency"]
 
-        candidates = [s for s in ranked if s.saliency_score <= max_saliency]
+        # First, filter by quality
+        quality_filtered = []
+        for seg in ranked:
+            is_acceptable, quality_score, reason = self._quality.evaluate_segment_quality(
+                np.zeros((seg.mask.shape[0], seg.mask.shape[1], 3), dtype=np.uint8),
+                seg,
+            )
+            if is_acceptable:
+                seg.quality_score = quality_score  # Store for reference
+                quality_filtered.append(seg)
+            else:
+                logger.debug(f"Segment {seg.id} rejected: {reason}")
 
-        # If not enough candidates below threshold, relax and take from full list
+        logger.info(f"Quality filtered: {len(quality_filtered)} / {len(ranked)} segments passed")
+
+        # Then filter by saliency
+        candidates = [s for s in quality_filtered if s.saliency_score <= max_saliency]
+
+        # If not enough candidates below threshold, relax and take from full quality list
         if len(candidates) < num_changes:
+            candidates = quality_filtered.copy()
+
+        # If still not enough, take from ranked list (without quality filter)
+        if len(candidates) < num_changes:
+            logger.warning(f"Not enough high-quality segments, relaxing quality requirements")
             candidates = ranked.copy()
 
         n = min(num_changes, len(candidates))
@@ -148,30 +171,75 @@ class DifferenceGenerator:
         segments: list[Segment],
         progress: ProgressCallback,
     ) -> tuple[np.ndarray, list[Difference]]:
-        """Apply a random change to each selected segment."""
+        """Apply a random change to each selected segment with quality checking."""
         modified = image.copy()
         differences: list[Difference] = []
 
         total = len(segments)
+        successful_changes = 0
+        max_retries = 2
+
         for i, seg in enumerate(segments):
             pct = 55 + int((i / max(total, 1)) * 35)
             change_type = self._decide_change_type(seg)
 
             _notify(progress, pct, f"変更を適用中 ({i + 1}/{total}): {change_type}")
 
-            diff = self._apply_single_change(modified, seg, change_type, i + 1)
-            if diff is not None:
-                differences.append(diff)
-                # Update modified in-place reference is fine since services return new arrays
-                if change_type == "deletion":
-                    modified = self._inp.inpaint(modified, seg.mask)
-                elif change_type == "color_change":
-                    modified, _ = self._col.change_hue(modified, seg.mask)
-                elif change_type == "addition":
-                    modified, new_bbox = self._dup.duplicate(modified, seg)
-                    if new_bbox:
-                        diff.bbox = new_bbox
+            # Try to apply change with quality check
+            for attempt in range(max_retries):
+                temp_modified = modified.copy()
+                x1, y1, x2, y2 = seg.bbox
+                original_region = image[y1:y2, x1:x2].copy()
+                new_bbox_result = None
 
+                # Apply the change
+                if change_type == "deletion":
+                    temp_modified = self._inp.inpaint(temp_modified, seg.mask)
+                elif change_type == "color_change":
+                    temp_modified, _ = self._col.change_hue(temp_modified, seg.mask)
+                elif change_type == "addition":
+                    temp_modified, new_bbox_result = self._dup.duplicate(temp_modified, seg)
+                    if new_bbox_result is None:
+                        logger.debug(f"Addition failed for segment {seg.id}, trying different type")
+                        change_type = random.choice(["deletion", "color_change"])
+                        continue
+
+                # Check quality of the modification
+                modified_region = temp_modified[y1:y2, x1:x2]
+                local_mask = seg.mask[y1:y2, x1:x2]
+
+                is_acceptable, quality_score, reason = self._quality.evaluate_modification_quality(
+                    original_region,
+                    modified_region,
+                    local_mask,
+                    change_type,
+                )
+
+                if is_acceptable or attempt == max_retries - 1:
+                    # Accept this modification
+                    modified = temp_modified
+                    diff = self._apply_single_change(modified, seg, change_type, successful_changes + 1)
+
+                    if diff is not None:
+                        if change_type == "addition" and new_bbox_result is not None:
+                            diff.bbox = new_bbox_result
+                        differences.append(diff)
+                        successful_changes += 1
+
+                    if not is_acceptable:
+                        logger.warning(f"Accepting lower quality change ({reason}) after {max_retries} attempts")
+                    else:
+                        logger.debug(f"Change accepted with quality score: {quality_score:.2f}")
+                    break
+                else:
+                    logger.debug(f"Modification rejected ({reason}), retrying with different parameters...")
+                    # Try a different change type on retry
+                    if change_type == "color_change":
+                        change_type = random.choice(["deletion", "addition"])
+                    elif change_type == "addition":
+                        change_type = "color_change"
+
+        logger.info(f"Successfully applied {successful_changes} / {total} changes")
         return modified, differences
 
     def _apply_single_change(

@@ -37,14 +37,29 @@ class Config:
 
     # Inpainting
     INPAINT_RADIUS = 5
+    INPAINT_METHOD = "auto"  # auto | ns | telea
 
-    # Segment filtering
-    SEGMENT_MIN_AREA_RATIO = 0.002   # min 0.2% of image area
-    SEGMENT_MAX_AREA_RATIO = 0.15    # max 15% of image area
+    # Segment filtering - more conservative for better quality
+    SEGMENT_MIN_AREA_RATIO = 0.003   # min 0.3% of image area (increased from 0.2%)
+    SEGMENT_MAX_AREA_RATIO = 0.12    # max 12% of image area (decreased from 15%)
 
-    # Difficulty presets
+    # Quality thresholds
+    MIN_EDGE_SMOOTHNESS = 0.6
+    MIN_MASK_COMPLETENESS = 0.85
+    MIN_MODIFICATION_SSIM = 0.7
+
+    # Difficulty presets - adjusted for higher quality standards
     DIFFICULTY_CONFIG = {
-        "easy": {"num_changes": 3, "max_saliency": 0.7},
-        "medium": {"num_changes": 5, "max_saliency": 0.5},
-        "hard": {"num_changes": 8, "max_saliency": 0.3},
+        "easy": {
+            "num_changes": 3,
+            "max_saliency": 0.65,  # Slightly more conservative
+        },
+        "medium": {
+            "num_changes": 5,
+            "max_saliency": 0.45,  # More conservative
+        },
+        "hard": {
+            "num_changes": 7,  # Reduced from 8 for better quality
+            "max_saliency": 0.25,  # More conservative
+        },
     }

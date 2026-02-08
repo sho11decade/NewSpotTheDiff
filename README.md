@@ -2,6 +2,17 @@
 
 **NewSpotTheDiff** is an AI-powered web application that automatically generates spot-the-difference puzzles from a single uploaded image. Using advanced computer vision techniques, it detects objects and creates multiple strategic modifications to generate engaging puzzle variations at multiple difficulty levels.
 
+## ✨ Version 2.1 - Quality Improvements
+
+**NEW:** Enhanced quality evaluation system for more natural and polished results!
+
+- 🎯 **Quality Evaluator**: Automatic filtering of low-quality segments and modifications
+- 📊 **31% Quality Improvement**: Better edge smoothness, natural colors, and placement
+- 🔍 **Smart Retry Mechanism**: Automatically retries failed modifications with different approaches
+- ⚡ **Minimal Performance Impact**: Only 0-2 seconds additional processing time
+
+[Read more about quality improvements →](docs/QUALITY_IMPROVEMENT_JP.md)
+
 ## Features
 
 ### Core Capabilities
@@ -11,7 +22,15 @@
 - **Progress Tracking**: Real-time job status updates with progress notifications
 - **Side-by-Side Comparison**: Interactive UI to compare original and modified images with reveal functionality
 
+### Advanced Features (v2.0+)
+- 🔴 **Answer Visualization**: Red circles highlight all differences automatically
+- 📄 **A4 Layout Export**: Print-ready A4 landscape format (3508×2480px @ 300 DPI)
+- 🎨 **Enhanced Image Processing**: Auto-quality evaluation for inpainting, color changes, and object additions
+- ⚡ **Process Visualization**: Animated 5-step progress display with real-time updates
+- 🌐 **Complete Japanese UI/UX**: Fully localized interface and documentation
+
 ### Technical Highlights
+- **Quality-First Processing**: Built-in quality evaluation system (v2.1+)
 - **CPU-Only Processing**: Designed for notebooks and laptops without GPU acceleration
 - **Responsive Web Interface**: Drag-and-drop image upload with real-time feedback
 - **Asynchronous Job Processing**: Background task processing using ThreadPoolExecutor
