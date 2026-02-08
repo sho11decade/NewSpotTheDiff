@@ -16,6 +16,7 @@ from src.services.difference_generator import DifferenceGenerator
 from src.services.answer_visualizer import AnswerVisualizer
 from src.services.a4_layout_composer import A4LayoutComposer
 from src.utils.image_io import load_image, save_image
+from src import database
 
 logger = logging.getLogger(__name__)
 
@@ -29,14 +30,16 @@ class JobManager:
         answer_visualizer: AnswerVisualizer,
         a4_composer: A4LayoutComposer,
         output_folder: str,
+        database_path: str,
         max_workers: int = 2,
     ) -> None:
         self._generator = generator
         self._answer_visualizer = answer_visualizer
         self._a4_composer = a4_composer
         self._output_folder = output_folder
+        self._database_path = database_path
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
-        self._jobs: dict[str, JobStatus] = {}
+        self._jobs: dict[str, JobStatus] = {}  # Memory cache for performance
         self._lock = threading.Lock()
 
     def submit(self, job_id: str, image_path: str, difficulty: str) -> JobStatus:
@@ -45,13 +48,49 @@ class JobManager:
         with self._lock:
             self._jobs[job_id] = status
 
+        # Persist to database for cross-worker visibility
+        database.save_job_status(
+            self._database_path,
+            job_id=job_id,
+            status=JobState.QUEUED.value,
+            progress=0,
+            current_step="待機中",
+        )
+
         self._executor.submit(self._process, job_id, image_path, difficulty)
         return status
 
     def get_status(self, job_id: str) -> JobStatus | None:
-        """Get current status of a job (thread-safe)."""
+        """Get current status of a job (thread-safe).
+
+        First checks memory cache, then falls back to database.
+        This ensures status survives worker restarts.
+        """
+        # Try memory cache first (fast path)
         with self._lock:
-            return self._jobs.get(job_id)
+            if job_id in self._jobs:
+                return self._jobs[job_id]
+
+        # Fall back to database (survives worker restarts)
+        db_status = database.get_job_status(self._database_path, job_id)
+        if db_status is None:
+            return None
+
+        # Reconstruct JobStatus from database record
+        status = JobStatus(
+            job_id=db_status["job_id"],
+            status=JobState(db_status["status"]),
+            progress=db_status["progress"],
+            current_step=db_status["current_step"],
+            error=db_status["error"],
+            result_path=db_status["result_path"],
+        )
+
+        # Cache it for future lookups
+        with self._lock:
+            self._jobs[job_id] = status
+
+        return status
 
     def _process(self, job_id: str, image_path: str, difficulty: str) -> None:
         """Background processing function."""
@@ -146,10 +185,40 @@ class JobManager:
                 np.clear_memo()  # Clear numpy memo cache if available
 
     def _update(self, job_id: str, **kwargs) -> None:
-        """Thread-safe status update."""
+        """Thread-safe status update.
+
+        Updates both memory cache and database for persistence across worker restarts.
+        """
         with self._lock:
             job = self._jobs.get(job_id)
             if job is None:
-                return
+                # Might happen if worker restarted, try to load from DB
+                db_status = database.get_job_status(self._database_path, job_id)
+                if db_status:
+                    job = JobStatus(
+                        job_id=db_status["job_id"],
+                        status=JobState(db_status["status"]),
+                        progress=db_status["progress"],
+                        current_step=db_status["current_step"],
+                        error=db_status["error"],
+                        result_path=db_status["result_path"],
+                    )
+                    self._jobs[job_id] = job
+                else:
+                    # Job not in memory or database, nothing to update
+                    return
+
+            # Update job object
             for key, value in kwargs.items():
                 setattr(job, key, value)
+
+        # Persist to database (outside lock to avoid holding it too long)
+        database.save_job_status(
+            self._database_path,
+            job_id=job_id,
+            status=job.status.value,
+            progress=job.progress,
+            current_step=job.current_step,
+            error=job.error,
+            result_path=job.result_path,
+        )

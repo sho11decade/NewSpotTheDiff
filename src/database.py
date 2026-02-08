@@ -27,6 +27,18 @@ CREATE TABLE IF NOT EXISTS generation_history (
 );
 CREATE INDEX IF NOT EXISTS idx_job_id ON generation_history(job_id);
 CREATE INDEX IF NOT EXISTS idx_expires_at ON generation_history(expires_at);
+
+CREATE TABLE IF NOT EXISTS job_status (
+    job_id TEXT PRIMARY KEY,
+    status TEXT NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 0,
+    current_step TEXT NOT NULL DEFAULT '',
+    error TEXT,
+    result_path TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_job_status_updated ON job_status(updated_at);
 """
 
 
@@ -119,5 +131,72 @@ def cleanup_expired(db_path: str) -> int:
     with sqlite3.connect(db_path) as conn:
         cursor = conn.execute(
             "DELETE FROM generation_history WHERE expires_at < ?", (now,)
+        )
+        return cursor.rowcount
+
+
+# Job status persistence functions for JobManager
+
+
+def save_job_status(
+    db_path: str,
+    job_id: str,
+    status: str,
+    progress: int = 0,
+    current_step: str = "",
+    error: str | None = None,
+    result_path: str | None = None,
+) -> None:
+    """Save or update job status in database."""
+    now = datetime.now(timezone.utc).isoformat()
+
+    with sqlite3.connect(db_path) as conn:
+        # Use INSERT OR REPLACE to handle both new and existing jobs
+        conn.execute(
+            """INSERT OR REPLACE INTO job_status
+               (job_id, status, progress, current_step, error, result_path,
+                created_at, updated_at)
+               VALUES (
+                   ?,
+                   ?,
+                   ?,
+                   ?,
+                   ?,
+                   ?,
+                   COALESCE((SELECT created_at FROM job_status WHERE job_id = ?), ?),
+                   ?
+               )""",
+            (
+                job_id,
+                status,
+                progress,
+                current_step,
+                error,
+                result_path,
+                job_id,
+                now,
+                now,
+            ),
+        )
+
+
+def get_job_status(db_path: str, job_id: str) -> dict | None:
+    """Retrieve job status by job_id."""
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM job_status WHERE job_id = ?", (job_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+
+def cleanup_old_job_status(db_path: str, hours: int = 24) -> int:
+    """Delete job status records older than specified hours. Returns count of deleted rows."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.execute(
+            "DELETE FROM job_status WHERE updated_at < ?", (cutoff,)
         )
         return cursor.rowcount

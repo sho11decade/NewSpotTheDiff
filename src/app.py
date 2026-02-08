@@ -145,6 +145,7 @@ def _init_services(app: Flask) -> None:
         answer_visualizer=answer_visualizer,
         a4_composer=a4_composer,
         output_folder=app.config["OUTPUT_FOLDER"],
+        database_path=app.config["DATABASE_PATH"],
         max_workers=app.config["MAX_WORKERS"],
     )
 
