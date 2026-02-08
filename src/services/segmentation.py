@@ -31,20 +31,27 @@ class SegmentationService:
         self._model = None  # lazy load
 
     def _ensure_model(self) -> None:
-        """Load the model on first use."""
+        """Load the model on first use.
+
+        Tries to load from local path first, falls back to Ultralytics cache.
+        """
         if self._model is not None:
             return
         from ultralytics import FastSAM
 
         path = Path(self._model_path)
-        if not path.exists():
-            raise FileNotFoundError(
-                f"FastSAM model not found: {path}. "
-                "Run `python scripts/download_model.py` first."
-            )
-        logger.info("Loading FastSAM model from %s ...", path)
-        self._model = FastSAM(str(path))
-        logger.info("FastSAM model loaded successfully.")
+
+        # Try local path first
+        if path.exists() and path.stat().st_size > 1000:  # More than 1KB
+            logger.info("Loading FastSAM model from %s ...", path)
+            self._model = FastSAM(str(path))
+            logger.info("FastSAM model loaded successfully from local path.")
+        else:
+            # Fall back to Ultralytics automatic download/cache
+            logger.info("Local model not found, using Ultralytics cache for FastSAM-x...")
+            logger.info("This will download the model (~1.3GB) on first use...")
+            self._model = FastSAM('FastSAM-x.pt')  # Ultralytics handles download
+            logger.info("FastSAM model loaded successfully from Ultralytics cache.")
 
     def unload_model(self) -> None:
         """Unload model from memory to free up space.
