@@ -7,6 +7,7 @@
     // DOM elements
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
+    const selectFileBtn = document.getElementById("selectFileBtn");
     const uploadSection = document.getElementById("uploadSection");
     const previewSection = document.getElementById("previewSection");
     const previewImage = document.getElementById("previewImage");
@@ -17,6 +18,11 @@
 
     let currentFileId = null;
     let currentDifficulty = "medium";
+
+    // ─── Select File Button ───────────────────
+    selectFileBtn.addEventListener("click", function () {
+        fileInput.click();
+    });
 
     // ─── Drag & Drop ──────────────────────────
     dropZone.addEventListener("dragover", function (e) {
