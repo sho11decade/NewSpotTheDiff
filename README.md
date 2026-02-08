@@ -2,9 +2,21 @@
 
 **NewSpotTheDiff** is an AI-powered web application that automatically generates spot-the-difference puzzles from a single uploaded image. Using advanced computer vision techniques, it detects objects and creates multiple strategic modifications to generate engaging puzzle variations at multiple difficulty levels.
 
+## ✨ Version 2.1.1 - Security & Pages Update
+
+**NEW:** Enhanced security measures and informational pages for production readiness!
+
+- 🔒 **Security Headers**: CSP, HSTS, X-Frame-Options, and more via Flask-Talisman
+- 🚦 **Rate Limiting**: DoS protection with configurable limits (10 uploads/min, 5 generations/min)
+- 📋 **Privacy Policy**: Comprehensive data handling and privacy information
+- ℹ️ **About Page**: Application features, tech stack, and version history
+- ⚖️ **Terms of Service**: Usage terms, restrictions, and legal framework
+
+[Read more about security improvements →](docs/SECURITY_IMPROVEMENTS_JP.md)
+
 ## ✨ Version 2.1 - Quality Improvements
 
-**NEW:** Enhanced quality evaluation system for more natural and polished results!
+**Enhanced quality evaluation system for more natural and polished results!**
 
 - 🎯 **Quality Evaluator**: Automatic filtering of low-quality segments and modifications
 - 📊 **31% Quality Improvement**: Better edge smoothness, natural colors, and placement
@@ -28,6 +40,12 @@
 - 🎨 **Enhanced Image Processing**: Auto-quality evaluation for inpainting, color changes, and object additions
 - ⚡ **Process Visualization**: Animated 5-step progress display with real-time updates
 - 🌐 **Complete Japanese UI/UX**: Fully localized interface and documentation
+
+### Security & Compliance (v2.1.1+)
+- 🔒 **Security Headers**: Content Security Policy, HSTS, XSS protection
+- 🚦 **Rate Limiting**: API throttling to prevent abuse (Flask-Limiter)
+- 📋 **Legal Pages**: Privacy Policy, Terms of Service, About page
+- 🛡️ **Input Validation**: File type, size, and dimension checks with magic byte verification
 
 ### Technical Highlights
 - **Quality-First Processing**: Built-in quality evaluation system (v2.1+)

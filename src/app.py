@@ -33,6 +33,7 @@ def create_app(config_class=Config) -> Flask:
 
     _setup_logging(app)
     _ensure_dirs(app)
+    _init_security(app)
     init_db(app.config["DATABASE_PATH"])
     _init_services(app)
     register_blueprints(app)
@@ -55,6 +56,46 @@ def _ensure_dirs(app: Flask) -> None:
         app.config["OUTPUT_FOLDER"],
         app.config["MODEL_FOLDER"],
     )
+
+
+def _init_security(app: Flask) -> None:
+    """Initialize security headers and rate limiting."""
+    try:
+        from flask_talisman import Talisman
+    except ImportError:
+        logging.warning("Flask-Talisman not installed. Security headers disabled.")
+    else:
+        sec_config = app.config.get("SECURITY_HEADERS", {})
+        Talisman(
+            app,
+            force_https=sec_config.get("force_https", False),
+            strict_transport_security=sec_config.get("strict_transport_security", True),
+            strict_transport_security_max_age=sec_config.get(
+                "strict_transport_security_max_age", 31536000
+            ),
+            content_security_policy=sec_config.get("content_security_policy"),
+            content_security_policy_nonce_in=["script-src", "style-src"],
+            x_content_type_options=sec_config.get("x_content_type_options", True),
+            frame_options=sec_config.get("x_frame_options", "SAMEORIGIN"),
+            force_file_save=False,
+        )
+        logging.info("Security headers initialized with Flask-Talisman")
+
+    if app.config.get("RATELIMIT_ENABLED", True):
+        try:
+            from flask_limiter import Limiter
+            from flask_limiter.util import get_remote_address
+        except ImportError:
+            logging.warning("Flask-Limiter not installed. Rate limiting disabled.")
+        else:
+            limiter = Limiter(
+                get_remote_address,
+                app=app,
+                default_limits=[app.config.get("RATELIMIT_DEFAULT", "100 per hour")],
+                storage_uri=app.config.get("RATELIMIT_STORAGE_URI", "memory://"),
+            )
+            app.extensions["limiter"] = limiter
+            logging.info("Rate limiting initialized with Flask-Limiter")
 
 
 def _init_services(app: Flask) -> None:

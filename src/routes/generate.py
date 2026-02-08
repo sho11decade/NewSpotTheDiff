@@ -13,8 +13,20 @@ from src.exceptions import ValidationError
 bp = Blueprint("generate", __name__, url_prefix="/api")
 
 
+def _get_limiter():
+    """Get limiter from app extensions if available."""
+    return current_app.extensions.get("limiter")
+
+
 @bp.route("/generate", methods=["POST"])
 def generate():
+    # Apply rate limiting if available
+    limiter = _get_limiter()
+    if limiter:
+        limiter.limit(current_app.config.get("RATELIMIT_GENERATE", "5 per minute"))(
+            lambda: None
+        )()
+
     data = request.get_json(silent=True)
     if data is None:
         return jsonify({"error": "JSON body required"}), 400

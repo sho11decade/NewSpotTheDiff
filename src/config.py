@@ -63,3 +63,26 @@ class Config:
             "max_saliency": 0.25,  # More conservative
         },
     }
+
+    # Security settings
+    SECURITY_HEADERS = {
+        "force_https": False,  # Set to True in production
+        "strict_transport_security": True,
+        "strict_transport_security_max_age": 31536000,
+        "content_security_policy": {
+            "default-src": "'self'",
+            "script-src": "'self' 'unsafe-inline'",
+            "style-src": "'self' 'unsafe-inline'",
+            "img-src": "'self' data: blob:",
+        },
+        "x_content_type_options": True,
+        "x_frame_options": "SAMEORIGIN",
+        "x_xss_protection": True,
+    }
+
+    # Rate limiting
+    RATELIMIT_ENABLED = True
+    RATELIMIT_STORAGE_URI = "memory://"
+    RATELIMIT_DEFAULT = "100 per hour"
+    RATELIMIT_UPLOAD = "10 per minute"
+    RATELIMIT_GENERATE = "5 per minute"

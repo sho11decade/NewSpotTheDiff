@@ -9,8 +9,20 @@ from src.exceptions import ValidationError
 bp = Blueprint("upload", __name__, url_prefix="/api")
 
 
+def _get_limiter():
+    """Get limiter from app extensions if available."""
+    return current_app.extensions.get("limiter")
+
+
 @bp.route("/upload", methods=["POST"])
 def upload_image():
+    # Apply rate limiting if available
+    limiter = _get_limiter()
+    if limiter:
+        limiter.limit(current_app.config.get("RATELIMIT_UPLOAD", "10 per minute"))(
+            lambda: None
+        )()
+
     if "file" not in request.files:
         return jsonify({"error": "ファイルが提供されていません"}), 400
 

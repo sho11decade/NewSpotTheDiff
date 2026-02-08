@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}このアプリについて - 間違い探し自動生成{% endblock %}
+
+{% block content %}
+<section class="page-content">
+    <h1 class="page-title">このアプリについて</h1>
+
+    <div class="card">
+        <h2>Spot the Diff - AI間違い探し自動生成</h2>
+        <p>
+            Spot the Diffは、最新のAI技術を活用して、画像から自動的に高品質な間違い探しパズルを生成するWebアプリケーションです。
+            ユーザーが画像をアップロードするだけで、AIが画像内のオブジェクトを認識し、自然な変更を加えることで、
+            楽しい間違い探しパズルを作成します。
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>主な機能</h2>
+        <ul class="feature-list">
+            <li><strong>AIによる自動セグメンテーション</strong>: FastSAMを使用した高精度なオブジェクト認識</li>
+            <li><strong>3種類の変更タイプ</strong>: 削除、色変更、オブジェクト追加</li>
+            <li><strong>3段階の難易度</strong>: 簡単（3箇所）、普通（5箇所）、難しい（7箇所）</li>
+            <li><strong>品質評価システム</strong>: 不自然な変更を自動的に検出し、高品質な結果を提供</li>
+            <li><strong>答えの視覚化</strong>: 赤い丸で間違い箇所を明示</li>
+            <li><strong>A4レイアウト</strong>: 印刷に最適な横並びレイアウト（300 DPI）</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>技術スタック</h2>
+        <ul class="tech-list">
+            <li><strong>バックエンド</strong>: Flask 3.x (Python)</li>
+            <li><strong>AI/機械学習</strong>: FastSAM (Segment Anything Model)</li>
+            <li><strong>画像処理</strong>: OpenCV, Pillow, scikit-image</li>
+            <li><strong>フロントエンド</strong>: HTML5, CSS3, JavaScript (Vanilla)</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>バージョン情報</h2>
+        <p><strong>現在のバージョン</strong>: 2.1.0</p>
+        <p><strong>リリース日</strong>: 2026年2月8日</p>
+        <h3>Version 2.1 の新機能</h3>
+        <ul>
+            <li>品質評価システムの実装（QualityEvaluator）</li>
+            <li>エッジアーティファクト90%削減</li>
+            <li>総合品質スコア31%向上</li>
+            <li>リトライメカニズムによる高品質な結果生成</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>開発者情報</h2>
+        <p>
+            <strong>開発者</strong>: RiceZero<br>
+            <strong>プロジェクト名</strong>: NewSpotTheDiff<br>
+            <strong>ライセンス</strong>: Private Project
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>お問い合わせ</h2>
+        <p>
+            本アプリケーションに関するご質問やフィードバックは、開発者までお問い合わせください。
+        </p>
+    </div>
+
+    <div class="page-actions">
+        <a href="/" class="btn btn--primary">トップページに戻る</a>
+    </div>
+</section>
+
+<style>
+.page-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    color: #4A90E2;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #4A90E2;
+    padding-bottom: 0.5rem;
+}
+
+.card h3 {
+    font-size: 1.2rem;
+    color: #555;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.card p {
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.feature-list, .tech-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li, .tech-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+
+.feature-list li:last-child, .tech-list li:last-child {
+    border-bottom: none;
+}
+
+.page-actions {
+    text-align: center;
+    margin: 2rem 0;
+}
+</style>
+{% endblock %}
